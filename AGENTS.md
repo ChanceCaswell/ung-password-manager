@@ -10,6 +10,8 @@
 - Use `gh-school` for GitHub CLI/API operations on this project; it is independently authenticated as `ChanceCaswell` through `~/.config/gh-school`.
 - Plain `gh` is reserved for non-school work; do not use it to create or configure this project's repository.
 
+- Do not add AI attribution, AI co-author lines, generated-by notices, or AI references to commit messages, pull requests, or push-related metadata.
+
 
 ## Next.js version guidance
 

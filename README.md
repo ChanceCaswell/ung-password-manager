@@ -31,8 +31,5 @@ bun run typecheck
 bun run build
 ```
 
-## Project documentation
-
-Product requirements and Jira-ready backlog material are available in [`docs/`](docs/). Local instructor-provided class slides are intentionally excluded from the public repository.
 
 > This project is under development. Do not store real credentials in it.
