@@ -13,6 +13,13 @@
 - Do not add AI attribution, AI co-author lines, generated-by notices, or AI references to commit messages, pull requests, or push-related metadata.
 
 
+## User-facing copy
+
+- Write rendered UI copy for end users, not developers.
+- Never expose sprint labels, prototype status, implementation or storage details, demo/test language, internal roadmap items, security-review notes, or unfinished-feature commentary in the product UI.
+- Keep those details in documentation, issues, pull requests, code comments, or tests. Review rendered copy before publishing, and ask the user when product wording is uncertain.
+
+
 ## Next.js version guidance
 
 <!-- BEGIN:nextjs-agent-rules -->
