@@ -1,12 +1,19 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
-import { Eye, EyeOff, Plus } from "lucide-react"
+import { ChevronDown, Eye, EyeOff, Plus, WandSparkles } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import { PasswordGeneratorPanel } from "@/components/vault/password-generator-panel"
 import { useVault } from "@/components/vault/vault-provider"
+import { cn } from "@/lib/utils"
 import type { CredentialDraft } from "@/lib/vault/types"
 import {
   CredentialValidationError,
@@ -33,6 +40,7 @@ export function CredentialForm({ onSaved }: CredentialFormProps) {
   >({})
   const [message, setMessage] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
+  const [generatorOpen, setGeneratorOpen] = useState(true)
 
   function updateDraft<Key extends keyof CredentialDraft>(
     key: Key,
@@ -43,6 +51,12 @@ export function CredentialForm({ onSaved }: CredentialFormProps) {
       setErrors((current) => ({ ...current, [key]: undefined }))
     }
     setMessage(null)
+  }
+
+  function applyGeneratedPassword(password: string) {
+    updateDraft("password", password)
+    setShowPassword(true)
+    setGeneratorOpen(false)
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -60,6 +74,7 @@ export function CredentialForm({ onSaved }: CredentialFormProps) {
         setErrors(caught.fields)
         return
       }
+
       setMessage(
         caught instanceof Error
           ? caught.message
@@ -135,6 +150,45 @@ export function CredentialForm({ onSaved }: CredentialFormProps) {
           </p>
         ) : null}
       </div>
+
+      <Collapsible
+        className="rounded-lg border bg-muted/30"
+        open={generatorOpen}
+        onOpenChange={setGeneratorOpen}
+      >
+        <CollapsibleTrigger
+          className="flex w-full items-center justify-between gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium outline-none hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring/40"
+          render={<button type="button" />}
+        >
+          <span className="flex items-center gap-2">
+            <WandSparkles className="size-4" aria-hidden="true" />
+            Password generator
+          </span>
+          <ChevronDown
+            className={cn(
+              "size-4 shrink-0 text-muted-foreground transition-transform",
+              generatorOpen && "rotate-180"
+            )}
+            aria-hidden="true"
+          />
+        </CollapsibleTrigger>
+        <CollapsibleContent keepMounted className="px-4 pb-4">
+          <PasswordGeneratorPanel
+            renderActions={(password) => (
+              <Button
+                className="h-10 w-full text-sm"
+                type="button"
+                variant="secondary"
+                disabled={!password}
+                onClick={() => applyGeneratedPassword(password)}
+              >
+                <WandSparkles className="size-4" aria-hidden="true" />
+                Use this password
+              </Button>
+            )}
+          />
+        </CollapsibleContent>
+      </Collapsible>
 
       <div className="space-y-2">
         <Label htmlFor="credential-notes">Notes (optional)</Label>

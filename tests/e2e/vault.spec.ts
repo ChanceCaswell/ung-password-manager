@@ -1,15 +1,15 @@
+import { mkdir } from "node:fs/promises"
+
 import { expect, test } from "@playwright/test"
 
 const vaultPassword = "correct horse battery staple"
-const credentialPassword = "DemoOnly!123456"
-
-const credentialNotes = "Recovery codes are in the shared drive."
 
 test("creates, validates, saves, encrypts, reloads, and unlocks a vault", async ({
   page,
   isMobile,
-}) => {
+}, testInfo) => {
   await page.goto("/")
+
   await expect(
     page.getByRole("heading", { name: "Create your vault" })
   ).toBeVisible()
@@ -32,37 +32,62 @@ test("creates, validates, saves, encrypts, reloads, and unlocks a vault", async 
   await page.getByLabel("Account label").fill("University email")
   await page.getByLabel("Website or app").fill("mail.example.edu")
   await page.getByLabel("Username").fill("student@example.edu")
-  await page.getByLabel("Password", { exact: true }).fill(credentialPassword)
-  await page.getByLabel("Notes (optional)").fill(credentialNotes)
+  const preview = page.getByLabel("Generated password preview")
+  const initialPreview = await preview.textContent()
+
+  await page.getByLabel("Length").fill("24")
+  await expect(preview).not.toHaveText(initialPreview ?? "")
+  await expect(preview).toHaveText(/^.{24}$/)
+
+  const symbols = page.getByRole("checkbox", { name: "Symbols" })
+  await symbols.uncheck()
+  await expect(preview).toHaveText(/^[A-Za-z0-9]{24}$/)
+  await symbols.check()
+
+  await page
+    .getByLabel("Notes (optional)")
+    .fill("Recovery codes are in the shared drive.")
+  await page.getByRole("button", { name: "Use this password" }).click()
+
+  const generatedPassword = await page
+    .getByLabel("Password", { exact: true })
+    .inputValue()
+  expect(generatedPassword).toHaveLength(24)
+  expect(generatedPassword).toMatch(/[a-z]/)
+  expect(generatedPassword).toMatch(/[A-Z]/)
+  expect(generatedPassword).toMatch(/[0-9]/)
+
   await page.getByRole("button", { name: "Save credential" }).click()
 
+  await expect(
+    page.getByText("University email", { exact: true })
+  ).toBeVisible()
+  await expect(page.getByText("student@example.edu")).toBeVisible()
   await expect(
     page.getByRole("dialog", { name: "Add a credential" })
   ).toBeHidden()
   await expect(
     page.getByRole("link", { name: "Vault", exact: true })
   ).toHaveAttribute("aria-current", "page")
+  await expect(page.getByText("1 saved credential.")).toBeVisible()
   await expect(
-    page.getByText("University email", { exact: true })
-  ).toBeVisible()
-  await expect(page.getByText("student@example.edu")).toBeVisible()
-  await expect(page.getByText(credentialNotes)).toBeVisible({
-    visible: !isMobile,
-  })
+    page.getByText("Recovery codes are in the shared drive.")
+  ).toBeVisible({ visible: !isMobile })
 
   const persistedVault = await page.evaluate(() =>
     localStorage.getItem("ung-password-manager:vault:v1")
   )
   expect(persistedVault).toBeTruthy()
-  for (const plaintext of [
-    "University email",
-    "mail.example.edu",
-    "student@example.edu",
-    credentialPassword,
-    credentialNotes,
-  ]) {
-    expect(persistedVault).not.toContain(plaintext)
-  }
+  expect(persistedVault).not.toContain("University email")
+  expect(persistedVault).not.toContain("mail.example.edu")
+  expect(persistedVault).not.toContain("student@example.edu")
+  expect(persistedVault).not.toContain(generatedPassword)
+
+  await mkdir("artifacts/visual", { recursive: true })
+  await page.screenshot({
+    path: `artifacts/visual/vault-${testInfo.project.name}.png`,
+    fullPage: true,
+  })
 
   await page.reload()
   await expect(
@@ -70,7 +95,46 @@ test("creates, validates, saves, encrypts, reloads, and unlocks a vault", async 
   ).toBeVisible()
   await page.getByLabel("Vault password").fill(vaultPassword)
   await page.getByRole("button", { name: "Unlock vault" }).click()
+
   await expect(
     page.getByText("University email", { exact: true })
+  ).toBeVisible()
+})
+
+test("previews generated passwords live on the generator page", async ({
+  page,
+}) => {
+  await page.goto("/")
+
+  await page.getByLabel("Vault password", { exact: true }).fill(vaultPassword)
+  await page.getByLabel("Confirm vault password").fill(vaultPassword)
+  await page.getByRole("button", { name: "Create encrypted vault" }).click()
+
+  await page.getByRole("button", { name: "Close" }).click()
+  await expect(
+    page.getByRole("dialog", { name: "Add a credential" })
+  ).toBeHidden()
+
+  await page.getByRole("link", { name: "Generator", exact: true }).click()
+  await expect(page).toHaveURL(/\/generate$/)
+
+  const preview = page.getByLabel("Generated password preview")
+  await expect(preview).toHaveText(/^.{20}$/)
+
+  await page.getByLabel("Length").fill("40")
+  await expect(preview).toHaveText(/^.{40}$/)
+
+  const uppercase = page.getByRole("checkbox", { name: "Uppercase" })
+  const digits = page.getByRole("checkbox", { name: "Numbers" })
+  const symbols = page.getByRole("checkbox", { name: "Symbols" })
+  await uppercase.uncheck()
+  await digits.uncheck()
+  await symbols.uncheck()
+  await expect(preview).toHaveText(/^[a-z]{40}$/)
+
+  const lowercase = page.getByRole("checkbox", { name: "Lowercase" })
+  await lowercase.uncheck()
+  await expect(
+    page.getByText("Select at least one character type.")
   ).toBeVisible()
 })
