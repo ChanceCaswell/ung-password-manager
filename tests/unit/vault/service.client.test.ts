@@ -63,7 +63,7 @@ describe("VaultService", () => {
     } catch (error) {
       expect(error).toBeInstanceOf(CredentialValidationError)
       expect((error as CredentialValidationError).fields).toEqual({
-        accountName: "Enter an account name.",
+        accountName: "Enter an account label.",
         siteOrApp: "Enter a website or app.",
         username: "Enter a username.",
         password: "Enter a password.",

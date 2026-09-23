@@ -83,7 +83,7 @@ export function CredentialForm() {
         <form className="space-y-5" onSubmit={handleSubmit} noValidate>
           <Field
             id="account-name"
-            label="Account name"
+            label="Account label"
             value={draft.accountName}
             placeholder="University email"
             error={errors.accountName}

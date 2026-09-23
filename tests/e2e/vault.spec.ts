@@ -15,13 +15,18 @@ test("creates, validates, saves, encrypts, reloads, and unlocks a vault", async 
   await page.getByLabel("Confirm vault password").fill(vaultPassword)
   await page.getByRole("button", { name: "Create encrypted vault" }).click()
 
+  await expect(page).toHaveURL(/\/vault$/)
+  await expect(
+    page.getByRole("link", { name: "Vault", exact: true })
+  ).toHaveAttribute("aria-current", "page")
+
   await page.getByRole("button", { name: "Save credential" }).click()
-  await expect(page.getByText("Enter an account name.")).toBeVisible()
+  await expect(page.getByText("Enter an account label.")).toBeVisible()
   await expect(page.getByText("Enter a website or app.")).toBeVisible()
   await expect(page.getByText("Enter a username.")).toBeVisible()
   await expect(page.getByText("Enter a password.")).toBeVisible()
 
-  await page.getByLabel("Account name").fill("University email")
+  await page.getByLabel("Account label").fill("University email")
   await page.getByLabel("Website or app").fill("mail.example.edu")
   await page.getByLabel("Username").fill("student@example.edu")
   await page.getByLabel("Password", { exact: true }).fill(credentialPassword)

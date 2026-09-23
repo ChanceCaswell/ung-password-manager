@@ -40,7 +40,7 @@ export function validateCredentialDraft(
   const siteOrApp = draft.siteOrApp.trim()
   const username = draft.username.trim()
 
-  if (!accountName) fields.accountName = "Enter an account name."
+  if (!accountName) fields.accountName = "Enter an account label."
   if (!siteOrApp) fields.siteOrApp = "Enter a website or app."
   if (!username) fields.username = "Enter a username."
   if (draft.password.length === 0) fields.password = "Enter a password."

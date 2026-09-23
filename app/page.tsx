@@ -1,5 +1,5 @@
-import { VaultApp } from "@/components/vault/vault-app"
+import { redirect } from "next/navigation"
 
 export default function Page() {
-  return <VaultApp />
+  redirect("/vault")
 }
