@@ -7,14 +7,29 @@ A team software-engineering project for a secure, accessible password-manager we
 - Next.js 16 with the App Router
 - React 19 and TypeScript
 - Tailwind CSS 4
-- shadcn/ui using the `b1D0dv72` preset and Base UI primitives
+- shadcn/ui with Base UI primitives
 - Bun for dependency management and scripts
 
-MongoDB Atlas, authentication, and the vault-encryption design will be added after the security model is agreed upon.
+Sprint 1 stores one client-encrypted vault in the browser and includes a configurable cryptographically secure password generator. MongoDB synchronization and authentication remain separate follow-up architecture decisions.
+
+## Where the code lives
+
+```
+app/                 routes only - each page.tsx renders one component
+  page.tsx           redirects to /vault
+  vault/page.tsx     the vault: saved credentials and the add-credential form
+components/vault/    everything specific to this app
+components/ui/       vendored shadcn/ui primitives - generated, not written by us
+lib/vault/           vault logic: validation, encryption, storage, service
+tests/unit/          bun tests for lib/
+tests/e2e/           playwright tests that drive the real browser
+```
+
+Everything runs in the browser. `lib/vault/service.client.ts` is the one place
+that ties the pieces together: it validates a credential, encrypts the whole
+vault, and hands it to `repository.client.ts` to store. Start there.
 
 ## Development
-
-Install [Bun](https://bun.sh/), then run:
 
 ```bash
 bun install
@@ -28,8 +43,9 @@ Open <http://localhost:3000>.
 ```bash
 bun run lint
 bun run typecheck
+bun run test
 bun run build
+bun run test:e2e
 ```
-
 
 > This project is under development. Do not store real credentials in it.
