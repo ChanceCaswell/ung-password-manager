@@ -18,9 +18,11 @@ Sprint 1 stores one client-encrypted vault in the browser and includes a configu
 app/                 routes only - each page.tsx renders one component
   page.tsx           redirects to /vault
   vault/page.tsx     the vault: saved credentials and the add-credential form
+  generate/page.tsx  the standalone password generator
 components/vault/    everything specific to this app
 components/ui/       vendored shadcn/ui primitives - generated, not written by us
 lib/vault/           vault logic: validation, encryption, storage, service
+lib/password-generator.ts   password generation
 tests/unit/          bun tests for lib/
 tests/e2e/           playwright tests that drive the real browser
 ```

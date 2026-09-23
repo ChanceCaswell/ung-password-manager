@@ -14,7 +14,10 @@ export interface NavItem {
   label: string
 }
 
-export const NAV_ITEMS: NavItem[] = [{ href: "/vault", label: "Vault" }]
+export const NAV_ITEMS: NavItem[] = [
+  { href: "/vault", label: "Vault" },
+  { href: "/generate", label: "Generator" },
+]
 
 export function VaultShell({ children }: { children: React.ReactNode }) {
   const { lockVault } = useVault()
