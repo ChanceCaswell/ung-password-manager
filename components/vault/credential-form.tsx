@@ -4,13 +4,6 @@ import { useState, type FormEvent } from "react"
 import { Eye, EyeOff, Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useVault } from "@/components/vault/vault-provider"
@@ -28,7 +21,11 @@ const EMPTY_DRAFT: CredentialDraft = {
   notes: "",
 }
 
-export function CredentialForm() {
+export interface CredentialFormProps {
+  onSaved?(): void
+}
+
+export function CredentialForm({ onSaved }: CredentialFormProps) {
   const { addCredential, busy } = useVault()
   const [draft, setDraft] = useState<CredentialDraft>(EMPTY_DRAFT)
   const [errors, setErrors] = useState<
@@ -54,10 +51,10 @@ export function CredentialForm() {
     setMessage(null)
 
     try {
-      const saved = await addCredential(draft)
+      await addCredential(draft)
       setDraft(EMPTY_DRAFT)
       setShowPassword(false)
-      setMessage(`${saved.accountName} was saved to the encrypted vault.`)
+      onSaved?.()
     } catch (caught) {
       if (caught instanceof CredentialValidationError) {
         setErrors(caught.fields)
@@ -72,104 +69,97 @@ export function CredentialForm() {
   }
 
   return (
-    <Card className="h-fit">
-      <CardHeader>
-        <CardTitle className="text-lg">Add a credential</CardTitle>
-        <CardDescription className="text-sm">
-          Enter the account details you want to keep in your vault.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form className="space-y-5" onSubmit={handleSubmit} noValidate>
-          <Field
-            id="account-name"
-            label="Account label"
-            value={draft.accountName}
-            placeholder="University email"
-            error={errors.accountName}
-            onChange={(value) => updateDraft("accountName", value)}
+    <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+      <Field
+        id="account-name"
+        label="Account label"
+        value={draft.accountName}
+        placeholder="University email"
+        error={errors.accountName}
+        onChange={(value) => updateDraft("accountName", value)}
+      />
+      <Field
+        id="site-or-app"
+        label="Website or app"
+        value={draft.siteOrApp}
+        placeholder="mail.example.edu"
+        error={errors.siteOrApp}
+        onChange={(value) => updateDraft("siteOrApp", value)}
+      />
+      <Field
+        id="credential-username"
+        label="Username"
+        value={draft.username}
+        placeholder="student@example.edu"
+        error={errors.username}
+        autoComplete="username"
+        onChange={(value) => updateDraft("username", value)}
+      />
+
+      <div className="space-y-2">
+        <Label htmlFor="credential-password">Password</Label>
+        <div className="flex gap-2">
+          <Input
+            id="credential-password"
+            className="h-10 px-3 font-mono text-sm"
+            type={showPassword ? "text" : "password"}
+            value={draft.password}
+            onChange={(event) => updateDraft("password", event.target.value)}
+            autoComplete="new-password"
+            aria-invalid={Boolean(errors.password)}
+            aria-describedby={
+              errors.password ? "credential-password-error" : undefined
+            }
           />
-          <Field
-            id="site-or-app"
-            label="Website or app"
-            value={draft.siteOrApp}
-            placeholder="mail.example.edu"
-            error={errors.siteOrApp}
-            onChange={(value) => updateDraft("siteOrApp", value)}
-          />
-          <Field
-            id="credential-username"
-            label="Username"
-            value={draft.username}
-            placeholder="student@example.edu"
-            error={errors.username}
-            autoComplete="username"
-            onChange={(value) => updateDraft("username", value)}
-          />
-
-          <div className="space-y-2">
-            <Label htmlFor="credential-password">Password</Label>
-            <div className="flex gap-2">
-              <Input
-                id="credential-password"
-                className="h-10 px-3 font-mono text-sm"
-                type={showPassword ? "text" : "password"}
-                value={draft.password}
-                onChange={(event) => updateDraft("password", event.target.value)}
-                autoComplete="new-password"
-                aria-invalid={Boolean(errors.password)}
-                aria-describedby={
-                  errors.password ? "credential-password-error" : undefined
-                }
-              />
-              <Button
-                className="size-10 shrink-0"
-                type="button"
-                size="icon"
-                variant="outline"
-                onClick={() => setShowPassword((visible) => !visible)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? (
-                  <EyeOff className="size-4" aria-hidden="true" />
-                ) : (
-                  <Eye className="size-4" aria-hidden="true" />
-                )}
-              </Button>
-            </div>
-            {errors.password ? (
-              <p id="credential-password-error" className="text-xs text-destructive">
-                {errors.password}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="credential-notes">Notes (optional)</Label>
-            <textarea
-              id="credential-notes"
-              className="min-h-20 w-full resize-y rounded-md border border-input bg-input/20 px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 dark:bg-input/30"
-              value={draft.notes}
-              onChange={(event) => updateDraft("notes", event.target.value)}
-              placeholder="Recovery details or context"
-            />
-          </div>
-
-          <p className="min-h-5 text-xs text-muted-foreground" aria-live="polite">
-            {message}
-          </p>
-
           <Button
-            className="h-11 w-full px-4 text-sm"
-            type="submit"
-            disabled={busy}
+            className="size-10 shrink-0"
+            type="button"
+            size="icon"
+            variant="outline"
+            onClick={() => setShowPassword((visible) => !visible)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
           >
-            <Plus className="size-4" aria-hidden="true" />
-            {busy ? "Encrypting and saving…" : "Save credential"}
+            {showPassword ? (
+              <EyeOff className="size-4" aria-hidden="true" />
+            ) : (
+              <Eye className="size-4" aria-hidden="true" />
+            )}
           </Button>
-        </form>
-      </CardContent>
-    </Card>
+        </div>
+        {errors.password ? (
+          <p
+            id="credential-password-error"
+            className="text-xs text-destructive"
+          >
+            {errors.password}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="credential-notes">Notes (optional)</Label>
+        <textarea
+          id="credential-notes"
+          className="min-h-20 w-full resize-y rounded-md border border-input bg-input/20 px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 dark:bg-input/30"
+          value={draft.notes}
+          onChange={(event) => updateDraft("notes", event.target.value)}
+          placeholder="Recovery details or context"
+        />
+      </div>
+
+      <p className="min-h-5 text-xs text-muted-foreground" aria-live="polite">
+        {message}
+      </p>
+
+      <Button
+        className="h-11 w-full px-4 text-sm"
+        type="submit"
+        disabled={busy}
+      >
+        <Plus className="size-4" aria-hidden="true" />
+        {busy ? "Encrypting and saving…" : "Save credential"}
+      </Button>
+    </form>
   )
 }
 
