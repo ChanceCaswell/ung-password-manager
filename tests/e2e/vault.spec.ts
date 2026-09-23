@@ -3,8 +3,11 @@ import { expect, test } from "@playwright/test"
 const vaultPassword = "correct horse battery staple"
 const credentialPassword = "DemoOnly!123456"
 
+const credentialNotes = "Recovery codes are in the shared drive."
+
 test("creates, validates, saves, encrypts, reloads, and unlocks a vault", async ({
   page,
+  isMobile,
 }) => {
   await page.goto("/")
   await expect(
@@ -17,8 +20,8 @@ test("creates, validates, saves, encrypts, reloads, and unlocks a vault", async 
 
   await expect(page).toHaveURL(/\/vault$/)
   await expect(
-    page.getByRole("link", { name: "Vault", exact: true })
-  ).toHaveAttribute("aria-current", "page")
+    page.getByRole("dialog", { name: "Add a credential" })
+  ).toBeVisible()
 
   await page.getByRole("button", { name: "Save credential" }).click()
   await expect(page.getByText("Enter an account label.")).toBeVisible()
@@ -30,10 +33,22 @@ test("creates, validates, saves, encrypts, reloads, and unlocks a vault", async 
   await page.getByLabel("Website or app").fill("mail.example.edu")
   await page.getByLabel("Username").fill("student@example.edu")
   await page.getByLabel("Password", { exact: true }).fill(credentialPassword)
+  await page.getByLabel("Notes (optional)").fill(credentialNotes)
   await page.getByRole("button", { name: "Save credential" }).click()
 
-  await expect(page.getByText("University email", { exact: true })).toBeVisible()
+  await expect(
+    page.getByRole("dialog", { name: "Add a credential" })
+  ).toBeHidden()
+  await expect(
+    page.getByRole("link", { name: "Vault", exact: true })
+  ).toHaveAttribute("aria-current", "page")
+  await expect(
+    page.getByText("University email", { exact: true })
+  ).toBeVisible()
   await expect(page.getByText("student@example.edu")).toBeVisible()
+  await expect(page.getByText(credentialNotes)).toBeVisible({
+    visible: !isMobile,
+  })
 
   const persistedVault = await page.evaluate(() =>
     localStorage.getItem("ung-password-manager:vault:v1")
@@ -44,6 +59,7 @@ test("creates, validates, saves, encrypts, reloads, and unlocks a vault", async 
     "mail.example.edu",
     "student@example.edu",
     credentialPassword,
+    credentialNotes,
   ]) {
     expect(persistedVault).not.toContain(plaintext)
   }
@@ -54,5 +70,7 @@ test("creates, validates, saves, encrypts, reloads, and unlocks a vault", async 
   ).toBeVisible()
   await page.getByLabel("Vault password").fill(vaultPassword)
   await page.getByRole("button", { name: "Unlock vault" }).click()
-  await expect(page.getByText("University email", { exact: true })).toBeVisible()
+  await expect(
+    page.getByText("University email", { exact: true })
+  ).toBeVisible()
 })

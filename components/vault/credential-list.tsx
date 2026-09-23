@@ -1,7 +1,9 @@
-import { Globe2, KeyRound, ShieldCheck, UserRound } from "lucide-react"
+import { KeyRound, Plus, ShieldCheck } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -11,8 +13,10 @@ import type { Credential } from "@/lib/vault/types"
 
 export function CredentialList({
   credentials,
+  onAddCredential,
 }: {
   credentials: Credential[]
+  onAddCredential(): void
 }) {
   return (
     <Card className="min-w-0">
@@ -23,6 +27,16 @@ export function CredentialList({
             ? "Your vault is empty."
             : `${credentials.length} saved ${credentials.length === 1 ? "credential" : "credentials"}.`}
         </CardDescription>
+        <CardAction>
+          <Button
+            className="h-9 px-3 text-sm"
+            type="button"
+            onClick={onAddCredential}
+          >
+            <Plus className="size-4" aria-hidden="true" />
+            Add credential
+          </Button>
+        </CardAction>
       </CardHeader>
       <CardContent>
         {credentials.length === 0 ? (
@@ -33,80 +47,77 @@ export function CredentialList({
               </div>
               <p className="mt-4 font-medium">No credentials yet</p>
               <p className="mt-1 max-w-xs text-xs text-muted-foreground">
-                Add your first credential using the form.
+                Add your first credential to get started.
               </p>
+              <Button
+                className="mt-4 h-9 px-3 text-sm"
+                type="button"
+                onClick={onAddCredential}
+              >
+                <Plus className="size-4" aria-hidden="true" />
+                Add credential
+              </Button>
             </div>
           </div>
         ) : (
-          <ul className="space-y-3" aria-label="Saved credentials">
+          <ul className="flex flex-col gap-2" aria-label="Saved credentials">
             {credentials.map((credential) => (
               <li key={credential.id}>
-                <article
-                  className="rounded-lg border bg-muted/20 p-4"
-                  data-credential-id={credential.id}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <h3 className="truncate text-sm font-semibold">
-                        {credential.accountName}
-                      </h3>
-                      <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                        {credential.siteOrApp}
-                      </p>
-                    </div>
-                    <div
-                      className="flex size-8 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground ring-1 ring-border"
-                      title="Encrypted in the saved vault"
-                    >
-                      <ShieldCheck className="size-4" aria-hidden="true" />
-                    </div>
-                  </div>
-
-                  <dl className="mt-4 grid gap-3">
-                    <div className="grid min-w-0 grid-cols-[1.25rem_1fr] items-center gap-2">
-                      <UserRound
-                        className="size-4 text-muted-foreground"
-                        aria-hidden="true"
-                      />
-                      <div className="min-w-0">
-                        <dt className="sr-only">Username</dt>
-                        <dd className="truncate text-sm">{credential.username}</dd>
-                      </div>
-                    </div>
-                    <div className="grid min-w-0 grid-cols-[1.25rem_1fr] items-center gap-2">
-                      <KeyRound
-                        className="size-4 text-muted-foreground"
-                        aria-hidden="true"
-                      />
-                      <div className="min-w-0">
-                        <dt className="sr-only">Password</dt>
-                        <dd
-                          className="truncate font-mono text-sm tracking-wider"
-                          aria-label="Password hidden"
-                        >
-                          ••••••••••••
-                        </dd>
-                      </div>
-                    </div>
-                    <div className="grid min-w-0 grid-cols-[1.25rem_1fr] items-center gap-2">
-                      <Globe2
-                        className="size-4 text-muted-foreground"
-                        aria-hidden="true"
-                      />
-                      <div className="min-w-0">
-                        <dt className="sr-only">Website or app</dt>
-                        <dd className="truncate text-xs text-muted-foreground">
-                          {credential.siteOrApp}
-                        </dd>
-                      </div>
-                    </div>
-                  </dl>
-                </article>
+                <CredentialRow credential={credential} />
               </li>
             ))}
           </ul>
         )}
       </CardContent>
     </Card>
+  )
+}
+
+function CredentialRow({ credential }: { credential: Credential }) {
+  return (
+    <article
+      className="flex items-center gap-3 rounded-lg border bg-muted/20 px-3 py-2.5"
+      data-credential-id={credential.id}
+    >
+      <div
+        className="flex size-8 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground ring-1 ring-border"
+        title="Encrypted in the saved vault"
+      >
+        <ShieldCheck className="size-4" aria-hidden="true" />
+      </div>
+
+      <dl className="min-w-0 flex-1">
+        <div className="flex min-w-0 items-baseline gap-2">
+          <dt className="sr-only">Account label</dt>
+          <dd className="truncate text-sm font-semibold">
+            {credential.accountName}
+          </dd>
+          <dt className="sr-only">Website or app</dt>
+          <dd className="truncate text-xs text-muted-foreground">
+            {credential.siteOrApp}
+          </dd>
+        </div>
+
+        <div className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
+          <dt className="sr-only">Username</dt>
+          <dd className="truncate">{credential.username}</dd>
+          <span aria-hidden="true">·</span>
+          <dt className="sr-only">Password</dt>
+          <dd
+            className="shrink-0 font-mono tracking-wider"
+            aria-label="Password hidden"
+          >
+            ••••••••
+          </dd>
+          {credential.notes ? (
+            <div className="hidden min-w-0 items-center gap-2 sm:flex">
+              <span aria-hidden="true">·</span>
+              <dt className="sr-only">Notes</dt>
+              <dd className="truncate">{credential.notes}</dd>
+            </div>
+          ) : null}
+        </div>
+      </dl>
+    </article>
   )
 }
