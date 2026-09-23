@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Lock, ShieldCheck } from "lucide-react"
 
+import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { useVault } from "@/components/vault/vault-provider"
 import { cn } from "@/lib/utils"
@@ -30,7 +31,9 @@ export function VaultShell({ children }: { children: React.ReactNode }) {
             <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
               <ShieldCheck className="size-5" aria-hidden="true" />
             </div>
-            <span className="truncate font-semibold">UNG Password Manager</span>
+            <span className="hidden truncate font-semibold sm:inline">
+              UNG Password Manager
+            </span>
           </Link>
 
           <nav aria-label="Primary">
@@ -59,15 +62,18 @@ export function VaultShell({ children }: { children: React.ReactNode }) {
             </ul>
           </nav>
 
-          <Button
-            className="h-9 px-3 text-sm"
-            type="button"
-            variant="outline"
-            onClick={lockVault}
-          >
-            <Lock className="size-4" aria-hidden="true" />
-            <span className="hidden sm:inline">Lock vault</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button
+              className="h-9 px-3 text-sm"
+              type="button"
+              variant="outline"
+              onClick={lockVault}
+            >
+              <Lock className="size-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Lock vault</span>
+            </Button>
+          </div>
         </div>
       </header>
 
