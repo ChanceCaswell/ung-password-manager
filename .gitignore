@@ -42,3 +42,14 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local agent/assistant tooling
+AGENTS.md
+CLAUDE.md
+.claude/
+.cursor/
+.cursorrules
+.aider*
+.codeium/
+.windsurf/
+.github/copilot-instructions.md
